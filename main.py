@@ -32,11 +32,11 @@ logger = Logger('./logs')
 
 
 # Define hyperparameters
-USE_GPU = True
-TRY_NEW = False
-NUM_TRAIN = 45000
-BATCH_SIZE = 128
-PRINT_EVERY = 100
+use_gpu = True
+try_new = False
+num_train = 45000
+batch_size = 128
+print_every = 100
 learning_rate = 0.1
 weight_decay = 0.0001 # Weight decay is changed relative to learning rate
 num_epochs = 50
@@ -71,20 +71,20 @@ transform_test = T.Compose([
 print('Loading dataset CIFAR-10 ...')
 cifar10_train = dset.CIFAR10('./datasets', train=True, download=True,
     transform=transform_train)
-loader_train = DataLoader(cifar10_train, batch_size=BATCH_SIZE,
-    sampler=sampler.SubsetRandomSampler(range(NUM_TRAIN)))
+loader_train = DataLoader(cifar10_train, batch_size=batch_size,
+    sampler=sampler.SubsetRandomSampler(range(num_train)))
 cifar10_val = dset.CIFAR10('./datasets', train=True, download=True,
     transform=transform_val)
-loader_val = DataLoader(cifar10_val, batch_size=BATCH_SIZE,
-    sampler=sampler.SubsetRandomSampler(range(NUM_TRAIN, 50000)))
+loader_val = DataLoader(cifar10_val, batch_size=batch_size,
+    sampler=sampler.SubsetRandomSampler(range(num_train, 50000)))
 cifar10_test = dset.CIFAR10('./datasets', train=False, download=True, 
     transform=transform_test)
-loader_test = DataLoader(cifar10_test, batch_size=BATCH_SIZE)
+loader_test = DataLoader(cifar10_test, batch_size=batch_size)
 # classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 print('Done!')
 
 # Set device (GPU or CPU)
-if USE_GPU and torch.cuda.is_available():
+if use_gpu and torch.cuda.is_available():
     device = torch.device('cuda')
     # import torch.backends.cudnn as cudnn
     # cudnn.benchmark = True
@@ -96,24 +96,25 @@ print('Using device:', device)
 # Set network model
 # TODO Move this to resnet.py file
 from models import resnet
-from models.layers import flatten
-model = nn.Sequential(
-    # First layer
-    nn.Conv2d(3, 16, 3, 1, padding=1),
-    resnet.BasicBlock(16),
-    resnet.BasicBlock(16),
-    resnet.BasicBlock(16),
-    resnet.BasicBlock(32, pooling=True),
-    resnet.BasicBlock(32),
-    resnet.BasicBlock(32),
-    resnet.BasicBlock(64, pooling=True),
-    resnet.BasicBlock(64),
-    resnet.BasicBlock(64),
-    nn.AvgPool2d(8),
-    flatten.Flatten(),
-    nn.Linear(64, 10),
-    nn.Softmax(dim=1),
-)
+# from models.layers import flatten
+# model = nn.Sequential(
+#     # First layer
+#     nn.Conv2d(3, 16, 3, 1, padding=1),
+#     resnet.BasicBlock(16),
+#     resnet.BasicBlock(16),
+#     resnet.BasicBlock(16),
+#     resnet.BasicBlock(32, pooling=True),
+#     resnet.BasicBlock(32),
+#     resnet.BasicBlock(32),
+#     resnet.BasicBlock(64, pooling=True),
+#     resnet.BasicBlock(64),
+#     resnet.BasicBlock(64),
+#     nn.AvgPool2d(8),
+#     flatten.Flatten(),
+#     nn.Linear(64, 10),
+#     nn.Softmax(dim=1),
+# )
+model = resnet.ResNetCIFAR10(n=3)
 
 # Test code
 # x = torch.zeros((128, 3, 32, 32), dtype=dtype)
@@ -130,7 +131,7 @@ optimizer = optim.SGD(model.parameters(),
                       weight_decay=weight_decay)
 
 # Load previous model
-if not TRY_NEW:
+if not try_new:
     print('PyTorch is currently the loading model ...', end='')
     model.load_state_dict(torch.load('model.pth'))
     model.cuda()
@@ -152,7 +153,7 @@ for param_group in optimizer.param_groups:
 # Train the model with logging
 from optimizer import train, test
 train(model, optimizer, loader_train, loader_val=loader_val,
-      num_epochs=num_epochs, logger=logger)
+      num_epochs=num_epochs, logger=logger, print_every=print_every)
 
 # Save model to checkpoint
 # TODO Maybe differentiate the model name?

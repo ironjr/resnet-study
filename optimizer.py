@@ -92,28 +92,27 @@ def train(model, optimizer, loader_train, loader_val=None,
                     # for tag, images in info.items():
                     #     logger.log_image(tag, images, i + 1)
 
-def test(model, data_loader, device=torch.device('cuda'),
+def test(model, loader_test, device=torch.device('cuda'),
          dtype_x=torch.float32, dtype_y=torch.long):
-    """
+    """Test on singlet without any modification on data.
+
+    Args: 
+        model (:obj:`torch.nn.Module`): A PyTorch Module for a model to be
+            trained.
+        loader_test (:obj:`torch.utils.data.DataLoader`): DataLoader having
+            test data.
+        device (:obj:`torch.device`, optional): Device where training is being
+            held. Default is CUDA.
+        dtype_x (:obj:`dtype`): Data type of input data. Default is
+            torch.float32
+        dtype_y (:obj:`dtype`): Data type of classifier. Default is torch.long
+
+    Returns: Nothing.
     """
     correct = 0
     total = 0
     with torch.no_grad():
-        for x, y in data_loader:
-            # Preprocessed image using FiveCrop or TenCrop
-            # bs, ncrops, c, h, w = x.size()
-            # y = y.to(device=device, dtype=dtype_y)
-            # predicted_avg = 0
-            # for i in range(ncrops):
-            #     xx = x[:, i, :, :, :].view(-1, c, h, w)
-            #     xx = xx.to(device=device, dtype=dtype_x)
-            #     out = model(xx)
-            #     _, predicted = torch.max(out.data, 1)
-            #     predicted_avg += predicted
-            # predicted_avg /= ncrops
-            # total += y.size(0)
-            # correct += (predicted_avg == y).sum().item()
-
+        for x, y in loader_test:
             # For single image use below:
             x = x.to(device=device, dtype=dtype_x)
             y = y.to(device=device, dtype=dtype_y)
