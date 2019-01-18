@@ -36,10 +36,10 @@ USE_GPU = True
 TRY_NEW = False
 NUM_TRAIN = 45000
 BATCH_SIZE = 128
-PRINT_EVERY = 1
-learning_rate = 0.0001
-weight_decay = 0.00003 # Weight decay is changed relative to learning rate
-num_epochs = 20
+PRINT_EVERY = 100
+learning_rate = 0.01
+weight_decay = 0.0001 # Weight decay is changed relative to learning rate
+num_epochs = 1
 # momentum = 0.9
 
 # Define transforms
@@ -60,10 +60,6 @@ transform_val = T.Compose([
     T.ToTensor(),
     T.Normalize(mean=(0.49141386, 0.48216975, 0.44654447),
         std=(0.24668841, 0.24316198, 0.261165)),
-    # T.ToPILImage(),
-    # T.Pad(4),
-    # T.TenCrop(32),
-    # T.Lambda(lambda crops: torch.stack([T.ToTensor()(crop) for crop in crops])),
 ])
 transform_test = T.Compose([
     T.ToTensor(),
@@ -124,18 +120,25 @@ model = nn.Sequential(
 # scores = model(x)
 # print(scores.size()) # Should give torch.Size([128, 10])
 
-# Load previous model
-if not TRY_NEW:
-    print('PyTorch is currently loading model ...')
-    model.load_state_dict(torch.load('model.pth'))
-    model.eval()
-    print('Done!')
-
-
 # Define new optimizer specified by hyperparameters defined above
 optimizer = optim.Adam(model.parameters(),
                        lr=learning_rate,
                        weight_decay=weight_decay)
+
+# Load previous model
+if not TRY_NEW:
+    print('PyTorch is currently the loading model ...', end='')
+    model.load_state_dict(torch.load('model.pth'))
+    model.cuda()
+    print('Done!')
+    print('PyTorch is currently loading the optimizer ...', end='')
+    optimizer.load_state_dict(torch.load('optimizer.pth'))
+    for state in optimizer.state.values():
+        for k, v in state.items():
+            if torch.is_tensor(v):
+                state[k] = v.cuda()
+    print('Done!')
+
 
 # Train the model with logging
 from optimizer import train, test
@@ -144,5 +147,7 @@ train(model, optimizer, loader_train, loader_val=loader_val,
 
 # Save model to checkpoint
 # TODO Maybe differentiate the model name?
+print('PyTorch is currently saving the model and the optimizer ...', end='')
 torch.save(model.state_dict(), 'model.pth')
 torch.save(optimizer.state_dict(), 'optimizer.pth')
+print('Done!')
