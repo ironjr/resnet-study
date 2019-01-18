@@ -54,7 +54,7 @@ def train(model, optimizer, loader_train, loader_val=None,
 
             # Compute accuracy
             _, argmax = torch.max(scores, 1)
-            accuracy = (labels == argmax.squeeze()).float().mean()
+            accuracy = (y == argmax.squeeze()).float().mean()
 
             # Print the intermediate performance. Test for validation data if
             # it is given.
@@ -78,18 +78,19 @@ def train(model, optimizer, loader_train, loader_val=None,
                     info = { 'loss': loss.item(), 'accuracy': accuracy.item() }
 
                     for tag, value in info.items():
-                        logger.scalar_summary(tag, value, i + 1)
+                        logger.log_scalar(tag, value, i + 1)
                     
                     # 2. Historgram summary
                     for tag, value in model.named_parameters():
                         tag = tag.replace('.', '/')
-                        logger.histo_summary(tag, value.data.cpu().numpy(), i + 1)
-                        logger.histo_summary(tag + '/grad',
+                        logger.log_histogram(tag, value.data.cpu().numpy(), i + 1)
+                        logger.log_histogram(tag + '/grad',
                             value.grad.data.cpu().numpy(), i + 1)
                         
                     # 3. Image summary
-
-
+                    # info = { 'images': x.view(-1, 32, 32)[:10].cpu().numpy()}
+                    # for tag, images in info.items():
+                    #     logger.log_image(tag, images, i + 1)
 
 def test(model, data_loader, device=torch.device('cuda'),
          dtype_x=torch.float32, dtype_y=torch.long):
@@ -99,6 +100,21 @@ def test(model, data_loader, device=torch.device('cuda'),
     total = 0
     with torch.no_grad():
         for x, y in data_loader:
+            # Preprocessed image using FiveCrop or TenCrop
+            # bs, ncrops, c, h, w = x.size()
+            # y = y.to(device=device, dtype=dtype_y)
+            # predicted_avg = 0
+            # for i in range(ncrops):
+            #     xx = x[:, i, :, :, :].view(-1, c, h, w)
+            #     xx = xx.to(device=device, dtype=dtype_x)
+            #     out = model(xx)
+            #     _, predicted = torch.max(out.data, 1)
+            #     predicted_avg += predicted
+            # predicted_avg /= ncrops
+            # total += y.size(0)
+            # correct += (predicted_avg == y).sum().item()
+
+            # For single image use below:
             x = x.to(device=device, dtype=dtype_x)
             y = y.to(device=device, dtype=dtype_y)
             out = model(x)

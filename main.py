@@ -24,48 +24,67 @@ import torchvision
 import torchvision.datasets as dset
 import torchvision.transforms as T
 
-# Use logger
-from logger import Logger
+# Log for tensorboard statistics
+# from logger import Logger
+# logger = Logger('./logs')
+# from tensorboardX import SummaryWriter
+# writer = SummaryWriter()
 
 
 # Define hyperparameters
+USE_GPU = True
+TRY_NEW = False
 NUM_TRAIN = 45000
 BATCH_SIZE = 128
-USE_GPU = True
-PRINT_EVERY = 100
-learning_rate = 0.003
-weight_decay = 0.000
-num_epochs = 40
+PRINT_EVERY = 1
+learning_rate = 0.03
+weight_decay = 0.00003 # Weight decay is changed relative to learning rate
+num_epochs = 20
 # momentum = 0.9
 
 # Define transforms
+# Original paper followed data augmentation method by Deeply Supervised Net by
+# Lee et al. (2015) [http://proceedings.mlr.press/v38/lee15a.pdf]
+# Mean and variance of each set is evaluated by utils.py
 transform_train = T.Compose([
+    T.RandomHorizontalFlip(),
+    T.RandomCrop(32, padding=4),
     T.ToTensor(),
-    T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+    # T.Pad(4),
+    # T.TenCrop(32),
+    # T.Lambda(lambda crops: torch.stack([T.ToTensor()(crop) for crop in crops])),
+    T.Normalize(mean=(0.49141386, 0.48216975, 0.44654447),
+        std=(0.24668841, 0.24316198, 0.261165)),
 ])
 transform_val = T.Compose([
     T.ToTensor(),
-    T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+    T.Normalize(mean=(0.49141386, 0.48216975, 0.44654447),
+        std=(0.24668841, 0.24316198, 0.261165)),
+    # T.ToPILImage(),
+    # T.Pad(4),
+    # T.TenCrop(32),
+    # T.Lambda(lambda crops: torch.stack([T.ToTensor()(crop) for crop in crops])),
 ])
 transform_test = T.Compose([
     T.ToTensor(),
-    T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+    T.Normalize(mean=(0.49413028, 0.48513925, 0.4504057),
+        std=(0.2463779, 0.24270386, 0.26123637)),
 ])
 
 # Load CIFAR-10 dataset
 print('Loading dataset CIFAR-10 ...')
 cifar10_train = dset.CIFAR10('./datasets', train=True, download=True,
-                             transform=transform_train)
+    transform=transform_train)
 loader_train = DataLoader(cifar10_train, batch_size=BATCH_SIZE,
-                          sampler=sampler.SubsetRandomSampler(range(NUM_TRAIN)))
+    sampler=sampler.SubsetRandomSampler(range(NUM_TRAIN)))
 cifar10_val = dset.CIFAR10('./datasets', train=True, download=True,
-                           transform=transform_val)
+    transform=transform_val)
 loader_val = DataLoader(cifar10_val, batch_size=BATCH_SIZE,
-                        sampler=sampler.SubsetRandomSampler(range(NUM_TRAIN, 50000)))
+    sampler=sampler.SubsetRandomSampler(range(NUM_TRAIN, 50000)))
 cifar10_test = dset.CIFAR10('./datasets', train=False, download=True, 
-                            transform=transform_test)
+    transform=transform_test)
 loader_test = DataLoader(cifar10_test, batch_size=BATCH_SIZE)
-classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+# classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 print('Done!')
 
 # Set device (GPU or CPU)
@@ -106,14 +125,12 @@ model = nn.Sequential(
 # print(scores.size()) # Should give torch.Size([128, 10])
 
 # Load previous model
-print('PyTorch is currently loading model ...')
-model.load_state_dict(torch.load('model.pth'))
-model.eval()
-print('Done!')
+if not TRY_NEW:
+    print('PyTorch is currently loading model ...')
+    model.load_state_dict(torch.load('model.pth'))
+    model.eval()
+    print('Done!')
 
-
-# Log for tensorboard statistics
-logger = Logger('./logs')
 
 # Define new optimizer specified by hyperparameters defined above
 optimizer = optim.Adam(model.parameters(),
@@ -123,7 +140,7 @@ optimizer = optim.Adam(model.parameters(),
 # Train the model with logging
 from optimizer import train, test
 train(model, optimizer, loader_train, loader_val=loader_val,
-      num_epochs=num_epochs, logger=logger)
+      num_epochs=num_epochs, logger=None)
 
 # Save model to checkpoint
 # TODO Maybe differentiate the model name?
