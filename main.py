@@ -37,7 +37,7 @@ TRY_NEW = False
 NUM_TRAIN = 45000
 BATCH_SIZE = 128
 PRINT_EVERY = 1
-learning_rate = 0.03
+learning_rate = 0.0001
 weight_decay = 0.00003 # Weight decay is changed relative to learning rate
 num_epochs = 20
 # momentum = 0.9
@@ -145,3 +145,4 @@ train(model, optimizer, loader_train, loader_val=loader_val,
 # Save model to checkpoint
 # TODO Maybe differentiate the model name?
 torch.save(model.state_dict(), 'model.pth')
+torch.save(optimizer.state_dict(), 'optimizer.pth')
