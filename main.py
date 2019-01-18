@@ -25,8 +25,8 @@ import torchvision.datasets as dset
 import torchvision.transforms as T
 
 # Log for tensorboard statistics
-# from logger import Logger
-# logger = Logger('./logs')
+from logger import Logger
+logger = Logger('./logs')
 # from tensorboardX import SummaryWriter
 # writer = SummaryWriter()
 
@@ -37,10 +37,10 @@ TRY_NEW = False
 NUM_TRAIN = 45000
 BATCH_SIZE = 128
 PRINT_EVERY = 100
-learning_rate = 0.01
+learning_rate = 0.1
 weight_decay = 0.0001 # Weight decay is changed relative to learning rate
-num_epochs = 1
-# momentum = 0.9
+num_epochs = 50
+momentum = 0.9
 
 # Define transforms
 # Original paper followed data augmentation method by Deeply Supervised Net by
@@ -121,9 +121,13 @@ model = nn.Sequential(
 # print(scores.size()) # Should give torch.Size([128, 10])
 
 # Define new optimizer specified by hyperparameters defined above
-optimizer = optim.Adam(model.parameters(),
-                       lr=learning_rate,
-                       weight_decay=weight_decay)
+# optimizer = optim.Adam(model.parameters(),
+#                        lr=learning_rate,
+#                        weight_decay=weight_decay)
+optimizer = optim.SGD(model.parameters(),
+                      lr=learning_rate,
+                      momentum=momentum,
+                      weight_decay=weight_decay)
 
 # Load previous model
 if not TRY_NEW:
@@ -139,11 +143,16 @@ if not TRY_NEW:
                 state[k] = v.cuda()
     print('Done!')
 
+for param_group in optimizer.param_groups:
+    param_group['lr'] = learning_rate
+    param_group['momentum'] = momentum
+    param_group['weight_decay'] = weight_decay
+
 
 # Train the model with logging
 from optimizer import train, test
 train(model, optimizer, loader_train, loader_val=loader_val,
-      num_epochs=num_epochs, logger=None)
+      num_epochs=num_epochs, logger=logger)
 
 # Save model to checkpoint
 # TODO Maybe differentiate the model name?

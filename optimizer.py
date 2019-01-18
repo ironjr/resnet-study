@@ -81,11 +81,11 @@ def train(model, optimizer, loader_train, loader_val=None,
                         logger.log_scalar(tag, value, i + 1)
                     
                     # 2. Historgram summary
-                    for tag, value in model.named_parameters():
-                        tag = tag.replace('.', '/')
-                        logger.log_histogram(tag, value.data.cpu().numpy(), i + 1)
-                        logger.log_histogram(tag + '/grad',
-                            value.grad.data.cpu().numpy(), i + 1)
+                    # for tag, value in model.named_parameters():
+                    #     tag = tag.replace('.', '/')
+                    #     logger.log_histogram(tag, value.data.cpu().numpy(), i + 1)
+                    #     logger.log_histogram(tag + '/grad',
+                    #         value.grad.data.cpu().numpy(), i + 1)
                         
                     # 3. Image summary
                     # info = { 'images': x.view(-1, 32, 32)[:10].cpu().numpy()}
