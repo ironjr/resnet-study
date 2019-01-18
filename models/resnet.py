@@ -204,14 +204,14 @@ class ResNetCIFAR10(nn.Module):
         """
         super().__init__()
         self.conv1 = nn.Conv2d(3, 16, 3, 1, padding=1)
-        self.res1 = []
+        self.res1 = nn.ModuleList()
         for _ in range(n):
             self.res1.append(BasicBlock(16))
-        self.res2 = []
+        self.res2 = nn.ModuleList()
         self.res2.append(BasicBlock(32, pooling=True))
         for _ in range(n - 1):
             self.res2.append(BasicBlock(32))
-        self.res3 = []
+        self.res3 = nn.ModuleList()
         self.res3.append(BasicBlock(64, pooling=True))
         for _ in range(n - 1):
             self.res3.append(BasicBlock(64))
@@ -222,11 +222,11 @@ class ResNetCIFAR10(nn.Module):
     
     def forward(self, x):
         out = self.conv1(x)
-        for net in enumerate(self.res1):
+        for net in self.res1:
             out = net(out)
-        for net in enumerate(self.net2):
+        for net in self.res2:
             out = net(out)
-        for net in enumerate(self.net3):
+        for net in self.res3:
             out = net(out)
         out = self.pool(out)
         out = self.flatten(out)
@@ -234,7 +234,7 @@ class ResNetCIFAR10(nn.Module):
         out = self.softmax(out)
         return out
 
-if __name__ is '__main__':
+if __name__ == '__main__':
     model = ResNetCIFAR10(3)
     x = torch.zeros((128, 3, 32, 32), dtype=torch.float32)
     scores = model(x)
