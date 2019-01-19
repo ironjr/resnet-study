@@ -25,8 +25,8 @@ import torchvision.datasets as dset
 import torchvision.transforms as T
 
 # Log for tensorboard statistics
-from logger import Logger
-logger = Logger('./logs')
+# from logger import Logger
+# logger = Logger('./logs')
 # from tensorboardX import SummaryWriter
 # writer = SummaryWriter()
 
@@ -37,8 +37,8 @@ try_new = False
 num_train = 45000
 batch_size = 128
 print_every = 100
-learning_rate = 0.1
-weight_decay = 0.0001 # Weight decay is changed relative to learning rate
+learning_rate = 0.001
+weight_decay = 0.0001
 num_epochs = 50
 momentum = 0.9
 
@@ -96,30 +96,7 @@ print('Using device:', device)
 # Set network model
 # TODO Move this to resnet.py file
 from models import resnet
-# from models.layers import flatten
-# model = nn.Sequential(
-#     # First layer
-#     nn.Conv2d(3, 16, 3, 1, padding=1),
-#     resnet.BasicBlock(16),
-#     resnet.BasicBlock(16),
-#     resnet.BasicBlock(16),
-#     resnet.BasicBlock(32, pooling=True),
-#     resnet.BasicBlock(32),
-#     resnet.BasicBlock(32),
-#     resnet.BasicBlock(64, pooling=True),
-#     resnet.BasicBlock(64),
-#     resnet.BasicBlock(64),
-#     nn.AvgPool2d(8),
-#     flatten.Flatten(),
-#     nn.Linear(64, 10),
-#     nn.Softmax(dim=1),
-# )
-model = resnet.ResNetCIFAR10(n=3)
-
-# Test code
-# x = torch.zeros((128, 3, 32, 32), dtype=dtype)
-# scores = model(x)
-# print(scores.size()) # Should give torch.Size([128, 10])
+model = resnet.ResNetCIFAR10(n=9)
 
 # Define new optimizer specified by hyperparameters defined above
 # optimizer = optim.Adam(model.parameters(),
@@ -146,14 +123,14 @@ if not try_new:
 
 for param_group in optimizer.param_groups:
     param_group['lr'] = learning_rate
-    param_group['momentum'] = momentum
-    param_group['weight_decay'] = weight_decay
+    # param_group['momentum'] = momentum
+    # param_group['weight_decay'] = weight_decay
 
 
 # Train the model with logging
 from optimizer import train, test
 train(model, optimizer, loader_train, loader_val=loader_val,
-      num_epochs=num_epochs, logger=logger, print_every=print_every)
+      num_epochs=num_epochs, logger=None, print_every=print_every)
 
 # Save model to checkpoint
 # TODO Maybe differentiate the model name?
