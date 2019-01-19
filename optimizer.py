@@ -4,8 +4,8 @@ import torch.optim as optim
 import torch.nn.functional as F
 
 def train(model, optimizer, loader_train, loader_val=None,
-          device=torch.device('cuda'), dtype_x=torch.float32,
-          dtype_y = torch.long, num_epochs=1, logger=None, print_every=100,
+          device=torch.device('cuda'), dtype_x=None,
+          dtype_y=None, num_epochs=1, logger=None, print_every=100,
           verbose=True):
     """Trains given model with given optimizer and data loader.
 
@@ -40,8 +40,14 @@ def train(model, optimizer, loader_train, loader_val=None,
             # Model to training mode
             model.train()
 
-            x = x.to(device=device, dtype=dtype_x)
-            y = y.to(device=device, dtype=dtype_y)
+            if dtype_x is not None:
+                x = x.to(device=device, dtype=dtype_x)
+            else:
+                x = x.to(device=device)
+            if dtype_y is not None:
+                y = y.to(device=device, dtype=dtype_y)
+            else:
+                y = y.to(device=device)
 
             # Forward path
             scores = model(x)
@@ -93,7 +99,7 @@ def train(model, optimizer, loader_train, loader_val=None,
                     #     logger.log_image(tag, images, i + 1)
 
 def test(model, loader_test, device=torch.device('cuda'),
-         dtype_x=torch.float32, dtype_y=torch.long):
+         dtype_x=None, dtype_y=None):
     """Test on singlet without any modification on data.
 
     Args: 
@@ -103,9 +109,8 @@ def test(model, loader_test, device=torch.device('cuda'),
             test data.
         device (:obj:`torch.device`, optional): Device where training is being
             held. Default is CUDA.
-        dtype_x (:obj:`dtype`): Data type of input data. Default is
-            torch.float32
-        dtype_y (:obj:`dtype`): Data type of classifier. Default is torch.long
+        dtype_x (:obj:`dtype`): Data type of input data. Default is None.
+        dtype_y (:obj:`dtype`): Data type of classifier. Default is None.
 
     Returns: Nothing.
     """
@@ -114,8 +119,14 @@ def test(model, loader_test, device=torch.device('cuda'),
     with torch.no_grad():
         for x, y in loader_test:
             # For single image use below:
-            x = x.to(device=device, dtype=dtype_x)
-            y = y.to(device=device, dtype=dtype_y)
+            if dtype_x is not None:
+                x = x.to(device=device, dtype=dtype_x)
+            else:
+                x = x.to(device=device)
+            if dtype_y is not None:
+                y = y.to(device=device, dtype=dtype_y)
+            else:
+                y = y.to(device=device)
             out = model(x)
             _, predicted = torch.max(out.data, 1)
             total += y.size(0)

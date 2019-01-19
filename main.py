@@ -33,11 +33,11 @@ import torchvision.transforms as T
 
 # Define hyperparameters
 use_gpu = True
-try_new = False
+try_new = True
 num_train = 45000
 batch_size = 128
 print_every = 100
-learning_rate = 0.001
+learning_rate = 0.1
 weight_decay = 0.0001
 num_epochs = 50
 momentum = 0.9
@@ -123,8 +123,8 @@ if not try_new:
 
 for param_group in optimizer.param_groups:
     param_group['lr'] = learning_rate
-    # param_group['momentum'] = momentum
-    # param_group['weight_decay'] = weight_decay
+    param_group['momentum'] = momentum
+    param_group['weight_decay'] = weight_decay
 
 
 # Train the model with logging
