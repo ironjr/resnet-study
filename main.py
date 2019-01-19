@@ -32,14 +32,15 @@ import torchvision.transforms as T
 
 
 # Define hyperparameters
+mode = 'train'
 use_gpu = True
 try_new = True
-num_train = 45000
+num_train = 50000
 batch_size = 128
+num_epochs = 82
 print_every = 100
 learning_rate = 0.1
 weight_decay = 0.0001
-num_epochs = 50
 momentum = 0.9
 
 # Define transforms
@@ -127,14 +128,17 @@ for param_group in optimizer.param_groups:
     param_group['weight_decay'] = weight_decay
 
 
-# Train the model with logging
 from optimizer import train, test
-train(model, optimizer, loader_train, loader_val=loader_val,
-      num_epochs=num_epochs, logger=None, print_every=print_every)
+if mode == 'train':
+    # Train the model
+    train(model, optimizer, loader_train, loader_val=None,
+        num_epochs=num_epochs, logger=None, print_every=print_every)
 
-# Save model to checkpoint
-# TODO Maybe differentiate the model name?
-print('PyTorch is currently saving the model and the optimizer ...', end='')
-torch.save(model.state_dict(), 'model.pth')
-torch.save(optimizer.state_dict(), 'optimizer.pth')
-print('Done!')
+    # Save model to checkpoint
+    # TODO Maybe differentiate the model name?
+    print('PyTorch is currently saving the model and the optimizer ...', end='')
+    torch.save(model.state_dict(), 'model.pth')
+    torch.save(optimizer.state_dict(), 'optimizer.pth')
+    print('Done!')
+elif mode == 'test':
+    test(model, loader_test)
