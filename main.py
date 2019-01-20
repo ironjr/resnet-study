@@ -35,7 +35,7 @@ import torchvision.transforms as T
 mode = 'test'
 use_gpu = True
 try_new = False
-num_train = 50000
+num_train = 45000
 batch_size = 128
 num_epochs = 41
 print_every = 100
