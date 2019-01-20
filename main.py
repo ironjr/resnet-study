@@ -25,19 +25,22 @@ import torchvision.datasets as dset
 import torchvision.transforms as T
 
 # Log for tensorboard statistics
-# from logger import Logger
-# logger = Logger('./logs')
-# from tensorboardX import SummaryWriter
-# writer = SummaryWriter()
+from logger import Logger
+logger = Logger('./logs')
+
+# Overcome lazyness of managing checkpoints
+from os import mkdir
+from shutil import copy
+from datetime import datetime
 
 
 # Define hyperparameters
-mode = 'test'
+mode = 'train'
 use_gpu = True
-try_new = False
+try_new = True
 num_train = 45000
 batch_size = 128
-num_epochs = 41
+num_epochs = 1
 print_every = 100
 learning_rate = 0.001
 weight_decay = 0.0001
@@ -95,11 +98,8 @@ print('Using device:', device)
 
 
 # Set network model
-# TODO Move this to resnet.py file
 from models import resnet
 model = resnet.ResNetCIFAR10(n=9)
-
-print(model)
 
 # Define new optimizer specified by hyperparameters defined above
 # optimizer = optim.Adam(model.parameters(),
@@ -113,34 +113,47 @@ optimizer = optim.SGD(model.parameters(),
 # Load previous model
 if not try_new:
     print('PyTorch is currently the loading model ...', end='')
+
     model.load_state_dict(torch.load('model.pth'))
     model.cuda()
+
     print('Done!')
+
     print('PyTorch is currently loading the optimizer ...', end='')
+
     optimizer.load_state_dict(torch.load('optimizer.pth'))
     for state in optimizer.state.values():
         for k, v in state.items():
             if torch.is_tensor(v):
                 state[k] = v.cuda()
+
     print('Done!')
 
+# Overwrite current optimizer settings
 for param_group in optimizer.param_groups:
     param_group['lr'] = learning_rate
     param_group['momentum'] = momentum
     param_group['weight_decay'] = weight_decay
 
 
+# Train/Test the model
 from optimizer import train, test
 if mode == 'train':
-    # Train the model
     train(model, optimizer, loader_train, loader_val=None,
-        num_epochs=num_epochs, logger=None, print_every=print_every)
+        num_epochs=num_epochs, logger=logger, print_every=print_every)
+
+    print('PyTorch is currently saving the model and the optimizer ...', end='')
 
     # Save model to checkpoint
-    # TODO Maybe differentiate the model name?
-    print('PyTorch is currently saving the model and the optimizer ...', end='')
     torch.save(model.state_dict(), 'model.pth')
     torch.save(optimizer.state_dict(), 'optimizer.pth')
+
+    # Archive current model to checkpoints folder
+    dirname = './checkpoints/' + datetime.today().strftime('%Y%m%d-%H%M%S')
+    mkdir(dirname)
+    copy('model.pth', dirname)
+    copy('optimizer.pth', dirname)
+
     print('Done!')
 elif mode == 'test':
     test(model, loader_test)

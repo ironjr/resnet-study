@@ -71,9 +71,10 @@ def train(model, optimizer, loader_train, loader_val=None,
                     accuracy.item() * 100), end='')
                 
                 # Validation dataset is provided.
+                val_acc = None
                 if loader_val is not None:
                     print(', ', end='')
-                    test(model, loader_val, device=device, dtype_x=dtype_x,
+                    val_acc = test(model, loader_val, device=device, dtype_x=dtype_x,
                         dtype_y=dtype_y)
                 else:
                     print('')
@@ -82,6 +83,8 @@ def train(model, optimizer, loader_train, loader_val=None,
                 if logger is not None:
                     # 1. Scalar summary
                     info = { 'loss': loss.item(), 'accuracy': accuracy.item() }
+                    if val_acc is not None:
+                        info['val_acc'] = val_acc.item()
 
                     for tag, value in info.items():
                         logger.log_scalar(tag, value, i + 1)
@@ -112,10 +115,12 @@ def test(model, loader_test, device=torch.device('cuda'),
         dtype_x (:obj:`dtype`): Data type of input data. Default is None.
         dtype_y (:obj:`dtype`): Data type of classifier. Default is None.
 
-    Returns: Nothing.
+    Returns:
+        Accuracy from the test result.
     """
     correct = 0
     total = 0
+    acc = None
     with torch.no_grad():
         for x, y in loader_test:
             # For single image use below:
@@ -133,3 +138,5 @@ def test(model, loader_test, device=torch.device('cuda'),
             correct += (predicted == y).sum().item()
         acc = float(correct) / total
         print('[{}/{}] Correct ({:.2f} %)'.format(correct, total, acc * 100))
+
+    return acc
