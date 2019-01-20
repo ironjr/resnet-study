@@ -32,14 +32,14 @@ import torchvision.transforms as T
 
 
 # Define hyperparameters
-mode = 'train'
+mode = 'test'
 use_gpu = True
-try_new = True
+try_new = False
 num_train = 50000
 batch_size = 128
-num_epochs = 82
+num_epochs = 41
 print_every = 100
-learning_rate = 0.1
+learning_rate = 0.001
 weight_decay = 0.0001
 momentum = 0.9
 
@@ -98,6 +98,8 @@ print('Using device:', device)
 # TODO Move this to resnet.py file
 from models import resnet
 model = resnet.ResNetCIFAR10(n=9)
+
+print(model)
 
 # Define new optimizer specified by hyperparameters defined above
 # optimizer = optim.Adam(model.parameters(),
