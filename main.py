@@ -28,20 +28,22 @@ import torchvision.transforms as T
 from logger import Logger
 logger = Logger('./logs')
 
-# Overcome lazyness of managing checkpoints
+# Overcome laziness of managing checkpoints
 from os import mkdir
 from shutil import copy
 from datetime import datetime
 
 
 # Define hyperparameters
-mode = 'train'
+mode = 'test'
 use_gpu = True
-try_new = True
-num_train = 45000
+try_new = False
+num_train = 50000
 batch_size = 128
-num_epochs = 1
-print_every = 100
+num_iter = 16000
+iteration_begins = 48000
+num_epochs = num_iter * batch_size // num_train
+print_every = 50
 learning_rate = 0.001
 weight_decay = 0.0001
 momentum = 0.9
@@ -54,9 +56,6 @@ transform_train = T.Compose([
     T.RandomHorizontalFlip(),
     T.RandomCrop(32, padding=4),
     T.ToTensor(),
-    # T.Pad(4),
-    # T.TenCrop(32),
-    # T.Lambda(lambda crops: torch.stack([T.ToTensor()(crop) for crop in crops])),
     T.Normalize(mean=(0.49141386, 0.48216975, 0.44654447),
         std=(0.24668841, 0.24316198, 0.261165)),
 ])
@@ -112,22 +111,24 @@ optimizer = optim.SGD(model.parameters(),
 
 # Load previous model
 if not try_new:
-    print('PyTorch is currently the loading model ...', end='')
+    print('PyTorch is currently the loading model ... ', end='')
 
     model.load_state_dict(torch.load('model.pth'))
     model.cuda()
 
     print('Done!')
 
-    print('PyTorch is currently loading the optimizer ...', end='')
+    # Optimizer is loaded when we continue training
+    if mode == 'train':
+        print('PyTorch is currently loading the optimizer ... ', end='')
 
-    optimizer.load_state_dict(torch.load('optimizer.pth'))
-    for state in optimizer.state.values():
-        for k, v in state.items():
-            if torch.is_tensor(v):
-                state[k] = v.cuda()
+        optimizer.load_state_dict(torch.load('optimizer.pth'))
+        for state in optimizer.state.values():
+            for k, v in state.items():
+                if torch.is_tensor(v):
+                    state[k] = v.cuda()
 
-    print('Done!')
+        print('Done!')
 
 # Overwrite current optimizer settings
 for param_group in optimizer.param_groups:
@@ -139,8 +140,9 @@ for param_group in optimizer.param_groups:
 # Train/Test the model
 from optimizer import train, test
 if mode == 'train':
-    train(model, optimizer, loader_train, loader_val=None,
-        num_epochs=num_epochs, logger=logger, print_every=print_every)
+    train(model, optimizer, loader_train, loader_val=loader_val,
+        num_epochs=num_epochs, logger=logger, print_every=print_every,
+        iteration_begins=iteration_begins)
 
     print('PyTorch is currently saving the model and the optimizer ...', end='')
 

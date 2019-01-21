@@ -5,8 +5,8 @@ import torch.nn.functional as F
 
 def train(model, optimizer, loader_train, loader_val=None,
           device=torch.device('cuda'), dtype_x=None,
-          dtype_y=None, num_epochs=1, logger=None, print_every=100,
-          verbose=True):
+          dtype_y=None, num_epochs=1, logger=None, iteration_begins=0,
+          print_every=100, verbose=True):
     """Trains given model with given optimizer and data loader.
 
     Args:
@@ -20,12 +20,15 @@ def train(model, optimizer, loader_train, loader_val=None,
             validation data.
         device (:obj:`torch.device`, optional): Device where training is being
             held. Default is CUDA.
-        dtype_x (:obj:`dtype`): Data type of input data. Default is
-            torch.float32
-        dtype_y (:obj:`dtype`): Data type of classifier. Default is torch.long
+        dtype_x (:obj:`dtype`, optional): Data type of input data. Default is
+            None.
+        dtype_y (:obj:`dtype`, optional): Data type of classifier. Default is
+            None.
         num_epochs (int, optional): Number of epoches to be train.
-        logger (:obj:`Logger`): Logs history for tensorboard statistics.
-            Default is None.
+        logger (:obj:`Logger`, optional): Logs history for tensorboard
+            statistics. Default is None.
+        iteration_begins (int, optional): Tells the logger from where it counts
+            the number of iterations passed. Default is 0.
         print_every (int, optional): Period of print of the statistics. Default
             is 100.
         verbose (bool, optional): Print the statistics in detail. Default is
@@ -72,7 +75,7 @@ def train(model, optimizer, loader_train, loader_val=None,
                 
                 # Validation dataset is provided.
                 val_acc = None
-                if loader_val is not None:
+                if loader_val is not None and len(loader_val) is not 0:
                     print(', ', end='')
                     val_acc = test(model, loader_val, device=device, dtype_x=dtype_x,
                         dtype_y=dtype_y)
@@ -81,25 +84,27 @@ def train(model, optimizer, loader_train, loader_val=None,
                 
                 # Tensorboard logging
                 if logger is not None:
+                    iterations = e * num_steps + i + iteration_begins
+
                     # 1. Scalar summary
                     info = { 'loss': loss.item(), 'accuracy': accuracy.item() }
                     if val_acc is not None:
-                        info['val_acc'] = val_acc.item()
+                        info['val_acc'] = val_acc
 
                     for tag, value in info.items():
-                        logger.log_scalar(tag, value, i + 1)
+                        logger.log_scalar(tag, value, iterations + 1)
                     
                     # 2. Historgram summary
                     # for tag, value in model.named_parameters():
                     #     tag = tag.replace('.', '/')
-                    #     logger.log_histogram(tag, value.data.cpu().numpy(), i + 1)
+                    #     logger.log_histogram(tag, value.data.cpu().numpy(), iterations + 1)
                     #     logger.log_histogram(tag + '/grad',
-                    #         value.grad.data.cpu().numpy(), i + 1)
+                    #         value.grad.data.cpu().numpy(), iterations + 1)
                         
                     # 3. Image summary
                     # info = { 'images': x.view(-1, 32, 32)[:10].cpu().numpy()}
                     # for tag, images in info.items():
-                    #     logger.log_image(tag, images, i + 1)
+                    #     logger.log_image(tag, images, iterations + 1)
 
 def test(model, loader_test, device=torch.device('cuda'),
          dtype_x=None, dtype_y=None):

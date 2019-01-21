@@ -65,6 +65,7 @@ class BasicBlock(nn.Module):
             # Identity is used for default.
             self.identity_shortcut = True
 
+
         # Convolutional path
         self.conv1 = nn.Conv2d(in_channels, out_channels, 3, stride, padding=1)
         self.conv2 = nn.Conv2d(out_channels, out_channels, 3, 1, padding=1)
@@ -193,7 +194,7 @@ class BottleneckBlock(nn.Module):
 
 class ResNetCIFAR10(nn.Module):
 
-    def __init__(self, n):
+    def __init__(self, n, shortcut_type='identity', normalization='batchnorm'):
         """Demonstration of the network introduced in the original paper.
         
         Args:
@@ -201,20 +202,42 @@ class ResNetCIFAR10(nn.Module):
                 specific, there are (1+2n, 2n, 2n) number of (16, 32, 64)
                 convolutional layers each having feature map with the size of
                 (32X32, 16X16, 8X8).
+            shortcut_type (:obj:`str`, optional): Type of shortcut path defined
+                in the paper. 'identity' and 'projection' is allowed. Default
+                is 'identity'.
+            normalization (:obj:`str`, optional): Type of normalization used
+                between conv and relu layers. Currently 'batchnorm' and None
+                is supported. Default is 'batchnorm'
         """
         super().__init__()
         self.conv1 = nn.Conv2d(3, 16, 3, 1, padding=1)
+
+        # Use BN as default normalization method.
+        if normalization == 'batchnorm':
+            self.use_batchnorm = True
+            self.bn1 = nn.BatchNorm2d(16)
+        else:
+            self.use_batchnorm = False
+
         self.res1 = nn.ModuleList()
         for _ in range(n):
-            self.res1.append(BasicBlock(16))
+            self.res1.append(BasicBlock(16, shortcut_type=shortcut_type,
+                normalization=normalization))
+
         self.res2 = nn.ModuleList()
-        self.res2.append(BasicBlock(32, pooling=True))
+        self.res2.append(BasicBlock(32, pooling=True,
+            shortcut_type=shortcut_type, normalization=normalization))
         for _ in range(n - 1):
-            self.res2.append(BasicBlock(32))
+            self.res2.append(BasicBlock(32, shortcut_type=shortcut_type,
+                normalization=normalization))
+
         self.res3 = nn.ModuleList()
-        self.res3.append(BasicBlock(64, pooling=True))
+        self.res3.append(BasicBlock(64, pooling=True,
+            shortcut_type=shortcut_type, normalization=normalization))
         for _ in range(n - 1):
-            self.res3.append(BasicBlock(64))
+            self.res3.append(BasicBlock(64, shortcut_type=shortcut_type,
+                normalization=normalization))
+
         self.pool = nn.AvgPool2d(8)
         self.flatten = flatten.Flatten()
         self.linear = nn.Linear(64, 10)
@@ -222,6 +245,9 @@ class ResNetCIFAR10(nn.Module):
     
     def forward(self, x):
         out = self.conv1(x)
+        if self.use_batchnorm:
+            out = self.bn1(out)
+        out = F.relu(out)
         for net in self.res1:
             out = net(out)
         for net in self.res2:
