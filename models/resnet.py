@@ -260,6 +260,8 @@ class ResNetCIFAR10(nn.Module):
         out = self.softmax(out)
         return out
 
+
+# Unit test on resnet.py
 if __name__ == '__main__':
     model = ResNetCIFAR10(3)
     x = torch.zeros((128, 3, 32, 32), dtype=torch.float32)

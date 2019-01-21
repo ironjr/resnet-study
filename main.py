@@ -26,7 +26,8 @@ import torchvision.transforms as T
 
 # Log for tensorboard statistics
 from logger import Logger
-logger = Logger('./logs')
+logger_train = Logger('./logs/train')
+logger_val = Logger('./logs/val')
 
 # Overcome laziness of managing checkpoints
 from os import mkdir
@@ -35,18 +36,20 @@ from datetime import datetime
 
 
 # Define hyperparameters
-mode = 'test'
+mode = 'train'
 use_gpu = True
-try_new = False
-num_train = 50000
+try_new = True
+num_train = 45000
 batch_size = 128
-num_iter = 16000
-iteration_begins = 48000
-num_epochs = num_iter * batch_size // num_train
+num_iter = 32000
+iteration_begins = 0
 print_every = 50
-learning_rate = 0.001
+learning_rate = 0.1
 weight_decay = 0.0001
 momentum = 0.9
+
+# Number of epochs are determined with other three parameters
+num_epochs = (num_iter * batch_size + num_train - 1) // num_train
 
 # Define transforms
 # Original paper followed data augmentation method by Deeply Supervised Net by
@@ -56,18 +59,18 @@ transform_train = T.Compose([
     T.RandomHorizontalFlip(),
     T.RandomCrop(32, padding=4),
     T.ToTensor(),
-    T.Normalize(mean=(0.49141386, 0.48216975, 0.44654447),
-        std=(0.24668841, 0.24316198, 0.261165)),
+    T.Normalize(mean=(0.49139968, 0.48215841, 0.44653091),
+        std=(0.24703223, 0.24348513, 0.26158784)),
 ])
 transform_val = T.Compose([
     T.ToTensor(),
-    T.Normalize(mean=(0.49141386, 0.48216975, 0.44654447),
-        std=(0.24668841, 0.24316198, 0.261165)),
+    T.Normalize(mean=(0.49139968, 0.48215841, 0.44653091),
+        std=(0.24703223, 0.24348513, 0.26158784)),
 ])
 transform_test = T.Compose([
     T.ToTensor(),
-    T.Normalize(mean=(0.49413028, 0.48513925, 0.4504057),
-        std=(0.2463779, 0.24270386, 0.26123637)),
+    T.Normalize(mean=(0.49421428, 0.48513139, 0.45040909),
+        std=(0.24665252, 0.24289226, 0.26159238)),
 ])
 
 # Load CIFAR-10 dataset
@@ -98,7 +101,7 @@ print('Using device:', device)
 
 # Set network model
 from models import resnet
-model = resnet.ResNetCIFAR10(n=9)
+model = resnet.ResNetCIFAR10(n=3)
 
 # Define new optimizer specified by hyperparameters defined above
 # optimizer = optim.Adam(model.parameters(),
@@ -141,8 +144,8 @@ for param_group in optimizer.param_groups:
 from optimizer import train, test
 if mode == 'train':
     train(model, optimizer, loader_train, loader_val=loader_val,
-        num_epochs=num_epochs, logger=logger, print_every=print_every,
-        iteration_begins=iteration_begins)
+        num_epochs=num_epochs, logger_train=logger_train, logger_val=logger_val,
+        print_every=print_every, iteration_begins=iteration_begins)
 
     print('PyTorch is currently saving the model and the optimizer ...', end='')
 
