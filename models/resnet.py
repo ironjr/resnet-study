@@ -40,7 +40,7 @@ class BasicBlock(nn.Module):
             stride = 2
 
             # For shortcut path.
-            self.pool = nn.AvgPool2d(1, stride=stride)
+            self.pool = nn.AvgPool2d(1, stride=2)
         else:
             in_channels = out_channels
             stride = 1
@@ -137,7 +137,7 @@ class BottleneckBlock(nn.Module):
             stride = 2
 
             # For shortcut path.
-            self.pool = nn.AvgPool2d(1, stride=stride)
+            self.pool = nn.AvgPool2d(1, stride=2)
         else:
             in_channels = out_channels
             stride = 1

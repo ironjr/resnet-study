@@ -36,15 +36,15 @@ from datetime import datetime
 
 
 # Define hyperparameters
-mode = 'test'
+mode = 'train'
 use_gpu = True
-try_new = False
+try_new = True
 num_train = 50000
 batch_size = 128
 num_iter = 16000
 iteration_begins = 391 * (82 + 41)
 print_every = 100
-learning_rate = 0.001
+learning_rate = 0.1
 weight_decay = 0.0001
 momentum = 0.9
 
@@ -62,12 +62,14 @@ transform_train = T.Compose([
     T.RandomCrop(32, padding=4),
     T.ToTensor(),
     T.Normalize(mean=(0.49139968, 0.48215841, 0.44653091),
-        std=(0.24703223, 0.24348513, 0.26158784)),
+        #  std=(0.24703223, 0.24348513, 0.26158784)),
+        std=(0.2023, 0.1994, 0.2010)),
 ])
 transform_val = T.Compose([
     T.ToTensor(),
     T.Normalize(mean=(0.49139968, 0.48215841, 0.44653091),
-        std=(0.24703223, 0.24348513, 0.26158784)),
+        #  std=(0.24703223, 0.24348513, 0.26158784)),
+        std=(0.2023, 0.1994, 0.2010)),
 ])
 transform_test = T.Compose([
     T.ToTensor(),
