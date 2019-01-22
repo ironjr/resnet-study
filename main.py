@@ -36,20 +36,22 @@ from datetime import datetime
 
 
 # Define hyperparameters
-mode = 'train'
+mode = 'test'
 use_gpu = True
-try_new = True
-num_train = 45000
+try_new = False
+num_train = 50000
 batch_size = 128
-num_iter = 32000
-iteration_begins = 0
-print_every = 50
-learning_rate = 0.1
+num_iter = 16000
+iteration_begins = 391 * (82 + 41)
+print_every = 100
+learning_rate = 0.001
 weight_decay = 0.0001
 momentum = 0.9
 
 # Number of epochs are determined with other three parameters
 num_epochs = (num_iter * batch_size + num_train - 1) // num_train
+# ... or choose number of epochs manually
+#  num_epochs = 100
 
 # Define transforms
 # Original paper followed data augmentation method by Deeply Supervised Net by
@@ -101,7 +103,7 @@ print('Using device:', device)
 
 # Set network model
 from models import resnet
-model = resnet.ResNetCIFAR10(n=3)
+model = resnet.ResNetCIFAR10(n=9)
 
 # Define new optimizer specified by hyperparameters defined above
 # optimizer = optim.Adam(model.parameters(),

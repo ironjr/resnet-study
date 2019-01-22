@@ -2,7 +2,13 @@
 set -x
 
 TODAY=$(date +%y%m%d)
-DIRNAME=old-logs/${TODAY}
+DIRNAME=archive/${TODAY}
+
+ITER=0
+while [ -d $DIRNAME-$ITER ]; do
+    ITER=$(($ITER + 1))
+done
+DIRNAME=$DIRNAME-$ITER
 
 [[ -d $DIRNAME ]] || mkdir $DIRNAME
 [[ -d $DIRNAME/logs ]] || mkdir $DIRNAME/logs

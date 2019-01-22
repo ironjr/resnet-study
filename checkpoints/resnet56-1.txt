@@ -1,0 +1,17 @@
+use_gpu = True
+num_train = 50000
+batch_size = 128
+weight_decay = 0.0001
+momentum = 0.9
+
+# 1st phase
+num_epochs = 82
+learning_rate = 0.1
+
+# 2nd phase
+num_epochs = 41
+learning_rate = 0.01
+
+# 3rd phase
+num_epochs = 41
+learning_rate = 0.001

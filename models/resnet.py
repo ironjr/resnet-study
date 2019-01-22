@@ -38,7 +38,9 @@ class BasicBlock(nn.Module):
         if pooling:
             in_channels = out_channels // 2
             stride = 2
-            self.pool = nn.AvgPool2d(1, stride=2)
+
+            # For shortcut path.
+            self.pool = nn.AvgPool2d(1, stride=stride)
         else:
             in_channels = out_channels
             stride = 1
@@ -64,6 +66,8 @@ class BasicBlock(nn.Module):
         else:
             # Identity is used for default.
             self.identity_shortcut = True
+            #  if self.use_batchnorm:
+            #      self.bn4 = nn.BatchNorm2d(out_channels)
 
 
         # Convolutional path
@@ -74,21 +78,28 @@ class BasicBlock(nn.Module):
 
     def forward(self, x):
         if self.use_batchnorm:
+            # Convolutional path
             out = self.conv1(x)
             out = self.bn1(out)
             out = F.relu(out)
             out = self.conv2(out)
             out = self.bn2(out)
+
+            # Shortcut path
             if not self.identity_shortcut: 
                 x = self.conv3(x)
                 x = self.bn3(x)
             elif self.pooling:
                 x = self.pool(x)
                 x = F.pad(x, (0, 0, 0, 0, 0, self.in_channels))
+                #  x = self.bn4(x)
         else:
+            # Convolutional path
             out = self.conv1(x)
             out = F.relu(out)
             out = self.conv2(out)
+
+            # Shortcut path
             if not self.identity_shortcut: 
                 x = self.conv3(x)
             elif self.pooling:
@@ -124,7 +135,9 @@ class BottleneckBlock(nn.Module):
         if pooling:
             in_channels = out_channels // 2
             stride = 2
-            self.pool = nn.AvgPool2d(1, stride=2)
+
+            # For shortcut path.
+            self.pool = nn.AvgPool2d(1, stride=stride)
         else:
             in_channels = out_channels
             stride = 1
@@ -162,6 +175,7 @@ class BottleneckBlock(nn.Module):
 
     def forward(self, x):
         if self.use_batchnorm:
+            # Convolutional path
             out = self.conv1(x)
             out = self.bn1(out)
             out = F.relu(out)
@@ -170,6 +184,8 @@ class BottleneckBlock(nn.Module):
             out = F.relu(out)
             out = self.conv3(out)
             out = self.bn3(out)
+
+            # Shortcut path
             if not self.identity_shortcut: 
                 x = self.conv4(x)
                 x = self.bn4(x)
@@ -177,11 +193,14 @@ class BottleneckBlock(nn.Module):
                 x = self.pool(x)
                 x = F.pad(x, (0, 0, 0, 0, 0, self.in_channels))
         else:
+            # Convolutional path
             out = self.conv1(x)
             out = F.relu(out)
             out = self.conv2(out)
             out = F.relu(out)
             out = self.conv3(out)
+            
+            # Shortcut path
             if not self.identity_shortcut: 
                 x = self.conv4(x)
             elif self.pooling:
@@ -241,7 +260,9 @@ class ResNetCIFAR10(nn.Module):
         self.pool = nn.AvgPool2d(8)
         self.flatten = flatten.Flatten()
         self.linear = nn.Linear(64, 10)
-        self.softmax = nn.Softmax(dim=1)
+
+        # Last softmax layer is implemented as cross_entropy method.
+        #  self.softmax = nn.Softmax(dim=1)
     
     def forward(self, x):
         out = self.conv1(x)
@@ -257,7 +278,7 @@ class ResNetCIFAR10(nn.Module):
         out = self.pool(out)
         out = self.flatten(out)
         out = self.linear(out)
-        out = self.softmax(out)
+        #  out = self.softmax(out)
         return out
 
 
