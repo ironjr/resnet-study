@@ -41,13 +41,13 @@ from datetime import datetime
 # Define hyperparameters
 mode = 'train'
 use_gpu = True
-try_new = True
+try_new = False
 num_train = 45000
 batch_size = 128
-num_iter = 32000
-iteration_begins = 391 * 0
+num_iter = 16000
+iteration_begins = 352 * 138
 print_every = 100
-learning_rate = 0.1
+learning_rate = 0.001
 weight_decay = 0.0001
 momentum = 0.9
 
@@ -140,12 +140,16 @@ if not try_new or mode == 'test':
 
         print('Done!')
 
-# Overwrite current optimizer settings
-for param_group in optimizer.param_groups:
-    param_group['lr'] = learning_rate
-    param_group['momentum'] = momentum
-    param_group['weight_decay'] = weight_decay
-
+# Overwrite default hyperparameters for new run
+group_decay, group_no_decay = optimizer.param_groups
+group_decay['lr'] = learning_rate
+group_decay['momentum'] = momentum
+group_decay['weight_decay'] = weight_decay
+group_no_decay['lr'] = learning_rate
+group_no_decay['momentum'] = momentum
+optimizer.defaults['lr'] = learning_rate
+optimizer.defaults['momentum'] = momentum
+optimizer.defaults['weight_decay'] = weight_decay
 
 # Train/Test the model
 from optimizer import train, test
