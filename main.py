@@ -260,4 +260,3 @@ if __name__ == '__main__':
 
                     # Post iteration count
                     iteration_begins += iterations
-
