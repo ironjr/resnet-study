@@ -1,3 +1,6 @@
+# Swap files
+.*.swp
+
 # Datasets o CIFAR-10
 datasets/
 *.tar.gz
