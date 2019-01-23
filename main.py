@@ -24,6 +24,9 @@ import torchvision
 import torchvision.datasets as dset
 import torchvision.transforms as T
 
+# Per-parameter settings for torch.optim.Optimizer
+from util import group_weight
+
 # Log for tensorboard statistics
 from logger import Logger
 logger_train = Logger('./logs/train')
@@ -36,10 +39,10 @@ from datetime import datetime
 
 
 # Define hyperparameters
-mode = 'test'
+mode = 'train'
 use_gpu = True
 try_new = True
-num_train = 50000
+num_train = 45000
 batch_size = 128
 num_iter = 32000
 iteration_begins = 391 * 0
@@ -111,15 +114,13 @@ model = resnet.ResNetCIFAR10(n=3)
 # optimizer = optim.Adam(model.parameters(),
 #                        lr=learning_rate,
 #                        weight_decay=weight_decay)
-optimizer = optim.SGD(model.parameters(),
+optimizer = optim.SGD(group_weight(model),
                       lr=learning_rate,
                       momentum=momentum,
                       weight_decay=weight_decay)
 
-#  print(model.parameters())
-
 # Load previous model
-if not try_new:
+if not try_new or mode == 'test':
     print('PyTorch is currently the loading model ... ', end='')
 
     model.load_state_dict(torch.load('model.pth'))
