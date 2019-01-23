@@ -1,5 +1,5 @@
 #!/bin/bash
 set -x
 
-rm checkpoints/*
+rm -rf checkpoints/*
 rm -rf logs/*
