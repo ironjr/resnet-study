@@ -36,13 +36,13 @@ from datetime import datetime
 
 
 # Define hyperparameters
-mode = 'train'
+mode = 'test'
 use_gpu = True
 try_new = True
 num_train = 50000
 batch_size = 128
-num_iter = 16000
-iteration_begins = 391 * (82 + 41)
+num_iter = 32000
+iteration_begins = 391 * 0
 print_every = 100
 learning_rate = 0.1
 weight_decay = 0.0001
@@ -105,7 +105,7 @@ print('Using device:', device)
 
 # Set network model
 from models import resnet
-model = resnet.ResNetCIFAR10(n=9)
+model = resnet.ResNetCIFAR10(n=3)
 
 # Define new optimizer specified by hyperparameters defined above
 # optimizer = optim.Adam(model.parameters(),
@@ -115,6 +115,8 @@ optimizer = optim.SGD(model.parameters(),
                       lr=learning_rate,
                       momentum=momentum,
                       weight_decay=weight_decay)
+
+#  print(model.parameters())
 
 # Load previous model
 if not try_new:
