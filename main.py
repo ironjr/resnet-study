@@ -115,7 +115,7 @@ def main(args):
 
     # Set network model
     from models import resnet
-    model = resnet.ResNetCIFAR10(n=9)
+    model = resnet.ResNetCIFAR10(n=18)
 
     # Define new optimizer specified by hyperparameters defined above
     # optimizer = optim.Adam(model.parameters(),
@@ -125,6 +125,7 @@ def main(args):
                           lr=learning_rate,
                           momentum=momentum,
                           weight_decay=weight_decay)
+                        #   nesterov=True)
 
     # Load previous model
     if not try_new or mode == 'test':
@@ -161,7 +162,7 @@ def main(args):
     # Train/Test the model
     from optimizer import train, test
     if mode == 'train':
-        train(model, optimizer, loader_train, loader_val=loader_val,
+        train(model, optimizer, loader_train, loader_val=loader_test, # changes
             num_epochs=num_epochs, logger_train=logger_train, logger_val=logger_val,
             print_every=print_every, iteration_begins=iteration_begins)
 

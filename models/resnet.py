@@ -60,21 +60,27 @@ class BasicBlock(nn.Module):
             self.identity_shortcut = False
             self.conv3 = nn.Conv2d(in_channels, out_channels, 1, stride,
                 padding=0)
-            nn.init.kaiming_normal_(self.conv3.weight)
             if self.use_batchnorm:
                 self.bn3 = nn.BatchNorm2d(out_channels)
         else:
             # Identity is used for default.
             self.identity_shortcut = True
-            #  if self.use_batchnorm:
+            #  if self.use_batchnorm and self.pooling:
             #      self.bn4 = nn.BatchNorm2d(out_channels)
 
 
         # Convolutional path
         self.conv1 = nn.Conv2d(in_channels, out_channels, 3, stride, padding=1)
         self.conv2 = nn.Conv2d(out_channels, out_channels, 3, 1, padding=1)
-        nn.init.kaiming_normal_(self.conv1.weight)
-        nn.init.kaiming_normal_(self.conv2.weight)
+
+        # Initialization in the separate section
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight,
+                    mode='fan_out', nonlinearity='relu')
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
 
     def forward(self, x):
         if self.use_batchnorm:
