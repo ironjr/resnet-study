@@ -59,25 +59,25 @@ class BasicBlock(nn.Module):
         if shortcut_type == 'projection':
             self.identity_shortcut = False
             self.conv3 = nn.Conv2d(in_channels, out_channels, 1, stride,
-                padding=0)
+                    padding=0, bias=False)
             if self.use_batchnorm:
                 self.bn3 = nn.BatchNorm2d(out_channels)
         else:
             # Identity is used for default.
             self.identity_shortcut = True
-            #  if self.use_batchnorm and self.pooling:
-            #      self.bn4 = nn.BatchNorm2d(out_channels)
 
 
         # Convolutional path
-        self.conv1 = nn.Conv2d(in_channels, out_channels, 3, stride, padding=1)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, 3, 1, padding=1)
+        self.conv1 = nn.Conv2d(in_channels, out_channels, 3, stride, padding=1,
+                bias=False)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, 3, 1, padding=1,
+                bias=False)
 
         # Initialization in the separate section
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight,
-                    mode='fan_out', nonlinearity='relu')
+                nn.init.kaiming_normal_(m.weight, mode='fan_out',
+                        nonlinearity='relu')
             elif isinstance(m, nn.BatchNorm2d):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
@@ -98,7 +98,6 @@ class BasicBlock(nn.Module):
             elif self.pooling:
                 x = self.pool(x)
                 x = F.pad(x, (0, 0, 0, 0, 0, self.in_channels))
-                #  x = self.bn4(x)
         else:
             # Convolutional path
             out = self.conv1(x)
@@ -263,12 +262,23 @@ class ResNetCIFAR10(nn.Module):
             self.res3.append(BasicBlock(64, shortcut_type=shortcut_type,
                 normalization=normalization))
 
-        self.pool = nn.AvgPool2d(8)
+        self.pool = nn.AdaptiveAvgPool2d((1, 1))
         self.flatten = flatten.Flatten()
         self.linear = nn.Linear(64, 10)
 
         # Last softmax layer is implemented as cross_entropy method.
         #  self.softmax = nn.Softmax(dim=1)
+
+        # Initialization in the separate section
+        #  for m in self.modules():
+        #      print(type(m).__name__
+        #      if isinstance(m, nn.Conv2d):
+        #          nn.init.kaiming_normal_(m.weight, mode='fan_out',
+        #                  nonlinearity='relu')
+        #      elif isinstance(m, nn.BatchNorm2d):
+        #          nn.init.constant_(m.weight, 1)
+        #          nn.init.constant_(m.bias, 0)
+        #  exit(0)
     
     def forward(self, x):
         out = self.conv1(x)

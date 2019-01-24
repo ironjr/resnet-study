@@ -115,7 +115,7 @@ def main(args):
 
     # Set network model
     from models import resnet
-    model = resnet.ResNetCIFAR10(n=18)
+    model = resnet.ResNetCIFAR10(n=3)
 
     # Define new optimizer specified by hyperparameters defined above
     # optimizer = optim.Adam(model.parameters(),
