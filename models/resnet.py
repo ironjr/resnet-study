@@ -73,14 +73,21 @@ class BasicBlock(nn.Module):
         self.conv2 = nn.Conv2d(out_channels, out_channels, 3, 1, padding=1,
                 bias=False)
 
+        # Initialization done in ResNet module
         # Initialization in the separate section
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out',
-                        nonlinearity='relu')
-            elif isinstance(m, nn.BatchNorm2d):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
+        #  for m in self.modules():
+        #      if isinstance(m, nn.Conv2d):
+        #          nn.init.kaiming_normal_(m.weight, mode='fan_out',
+        #                  nonlinearity='relu')
+        #          if m.bias is not None:
+        #              mm.init.constant_(m.bias, 0)
+        #      elif isinstance(m, nn.BatchNorm2d):
+        #          nn.init.constant_(m.weight, 1)
+        #          nn.init.constant_(m.bias, 0)
+        #      elif isinstance(m, nn.Linear):
+        #          nn.init.normal_(m.weight, std=1e-3)
+        #          if m.bias is not None:
+        #              mm.init.constant_(m.bias, 0)
 
     def forward(self, x):
         if self.use_batchnorm:
@@ -270,15 +277,19 @@ class ResNetCIFAR10(nn.Module):
         #  self.softmax = nn.Softmax(dim=1)
 
         # Initialization in the separate section
-        #  for m in self.modules():
-        #      print(type(m).__name__
-        #      if isinstance(m, nn.Conv2d):
-        #          nn.init.kaiming_normal_(m.weight, mode='fan_out',
-        #                  nonlinearity='relu')
-        #      elif isinstance(m, nn.BatchNorm2d):
-        #          nn.init.constant_(m.weight, 1)
-        #          nn.init.constant_(m.bias, 0)
-        #  exit(0)
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out',
+                        nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, std=1e-3)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
     
     def forward(self, x):
         out = self.conv1(x)
