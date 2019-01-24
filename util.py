@@ -48,11 +48,11 @@ def group_weight(module):
         if isinstance(m, nn.Linear):
             group_decay.append(m.weight)
             if m.bias is not None:
-                group_decay.append(m.bias)
+                group_no_decay.append(m.bias)
         elif isinstance(m, nn.modules.conv._ConvNd):
             group_decay.append(m.weight)
             if m.bias is not None:
-                group_decay.append(m.bias)
+                group_no_decay.append(m.bias)
         elif isinstance(m, nn.modules.batchnorm._BatchNorm):
             if m.bias is not None:
                 group_no_decay.append(m.weight)
