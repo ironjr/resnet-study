@@ -35,6 +35,7 @@ from copy import deepcopy
 
 def main(args):
     # Get hyper-parameters from arguments
+    label = args.label
     mode = args.mode
     use_tb = args.use_tb
     use_gpu = args.use_gpu
@@ -59,8 +60,13 @@ def main(args):
     logger_val = None
     if use_tb:
         from logger import Logger
-        logger_train = Logger('./logs/train')
-        logger_val = Logger('./logs/val')
+        if label is None:
+            dirname = './logs/' + datetime.today().strftime('%Y%m%d-%H%M%S')
+        else:
+            dirname = './logs/' + label
+        mkdir(dirname)
+        logger_train = Logger(dirname + '/train')
+        logger_val = Logger(dirname + '/val')
 
 
     # Define transforms
@@ -115,7 +121,7 @@ def main(args):
 
     # Set network model
     from models import resnet
-    model = resnet.ResNetCIFAR10(n=3)
+    model = resnet.ResNetCIFAR10(n=9)
 
     # Define new optimizer specified by hyperparameters defined above
     # optimizer = optim.Adam(model.parameters(),
@@ -188,6 +194,8 @@ if __name__ == '__main__':
     # Parameterize the running envionment to run with a shell script
     parser = argparse.ArgumentParser(
         description='Run PyTorch on the classification problem.')
+    parser.add_argument('--label', dest='label', type=str, default=None,
+        help='name of run and folder where logs are to be stored')
     parser.add_argument('--mode', dest='mode', type=str, default='train',
         help='choose run mode between training and test')
     parser.add_argument('--schedule', dest='schedule_file', type=str, default=None,
@@ -228,6 +236,7 @@ if __name__ == '__main__':
             with open(args.schedule_file) as f:
                 contents = json.load(f)
 
+                iterations = 0
                 iteration_begins = 0
                 it_per_epoch = (args.num_train + args.batch_size - 1) // \
                     args.batch_size

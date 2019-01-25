@@ -165,7 +165,6 @@ class BottleneckBlock(nn.Module):
             self.identity_shortcut = False
             self.conv4 = nn.Conv2d(in_channels, out_channels, 1, stride,
                     padding=0, bias=False)
-            nn.init.kaiming_normal_(self.conv4.weight)
             if self.use_batchnorm:
                 self.bn4 = nn.BatchNorm2d(out_channels)
         else:
@@ -270,14 +269,14 @@ class ResNetCIFAR10(nn.Module):
 
         self.res2 = nn.ModuleList()
         self.res2.append(BasicBlock(32, pooling=True,
-            shortcut_type=shortcut_type, normalization=normalization))
+            shortcut_type='projection', normalization=normalization))
         for _ in range(n - 1):
             self.res2.append(BasicBlock(32, shortcut_type=shortcut_type,
                 normalization=normalization))
 
         self.res3 = nn.ModuleList()
         self.res3.append(BasicBlock(64, pooling=True,
-            shortcut_type=shortcut_type, normalization=normalization))
+            shortcut_type='projection', normalization=normalization))
         for _ in range(n - 1):
             self.res3.append(BasicBlock(64, shortcut_type=shortcut_type,
                 normalization=normalization))
