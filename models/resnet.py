@@ -38,9 +38,6 @@ class BasicBlock(nn.Module):
         if pooling:
             in_channels = out_channels // 2
             stride = 2
-
-            # For shortcut path.
-            self.pool = nn.AvgPool2d(1, stride=2)
         else:
             in_channels = out_channels
             stride = 1
@@ -65,7 +62,8 @@ class BasicBlock(nn.Module):
         else:
             # Identity is used for default.
             self.identity_shortcut = True
-
+            if self.pooling:
+                self.pool = nn.AvgPool2d(1, stride=2)
 
         # Convolutional path
         self.conv1 = nn.Conv2d(in_channels, out_channels, 3, stride, padding=1,
@@ -147,9 +145,6 @@ class BottleneckBlock(nn.Module):
         if pooling:
             in_channels = out_channels // 2
             stride = 2
-
-            # For shortcut path.
-            self.pool = nn.AvgPool2d(1, stride=2)
         else:
             in_channels = out_channels
             stride = 1
@@ -169,21 +164,39 @@ class BottleneckBlock(nn.Module):
         if shortcut_type == 'projection':
             self.identity_shortcut = False
             self.conv4 = nn.Conv2d(in_channels, out_channels, 1, stride,
-                padding=0)
+                    padding=0, bias=False)
             nn.init.kaiming_normal_(self.conv4.weight)
             if self.use_batchnorm:
                 self.bn4 = nn.BatchNorm2d(out_channels)
         else:
             # Identity is used for default.
             self.identity_shortcut = True
+            if self.pooling:
+                self.pool = nn.AvgPool2d(1, stride=2)
 
         # Convolutional path
-        self.conv1 = nn.Conv2d(in_channels, int_channels, 1, stride, padding=0)
-        self.conv2 = nn.Conv2d(int_channels, int_channels, 3, 1, padding=1)
-        self.conv3 = nn.Conv2d(int_channels, out_channels, 1, 1, padding=0)
-        nn.init.kaiming_normal_(self.conv1.weight)
-        nn.init.kaiming_normal_(self.conv2.weight)
-        nn.init.kaiming_normal_(self.conv3.weight)
+        self.conv1 = nn.Conv2d(in_channels, int_channels, 1, stride, padding=0,
+                bias=False)
+        self.conv2 = nn.Conv2d(int_channels, int_channels, 3, 1, padding=1,
+                bias=False)
+        self.conv3 = nn.Conv2d(int_channels, out_channels, 1, 1, padding=0,
+                bias=False)
+
+        # Initialization done in ResNet module
+        # Initialization in the separate section
+        #  for m in self.modules():
+        #      if isinstance(m, nn.Conv2d):
+        #          nn.init.kaiming_normal_(m.weight, mode='fan_out',
+        #                  nonlinearity='relu')
+        #          if m.bias is not None:
+        #              mm.init.constant_(m.bias, 0)
+        #      elif isinstance(m, nn.BatchNorm2d):
+        #          nn.init.constant_(m.weight, 1)
+        #          nn.init.constant_(m.bias, 0)
+        #      elif isinstance(m, nn.Linear):
+        #          nn.init.normal_(m.weight, std=1e-3)
+        #          if m.bias is not None:
+        #              mm.init.constant_(m.bias, 0)
 
     def forward(self, x):
         if self.use_batchnorm:
@@ -241,7 +254,7 @@ class ResNetCIFAR10(nn.Module):
                 is supported. Default is 'batchnorm'
         """
         super().__init__()
-        self.conv1 = nn.Conv2d(3, 16, 3, 1, padding=1)
+        self.conv1 = nn.Conv2d(3, 16, 3, 1, padding=1, bias=False)
 
         # Use BN as default normalization method.
         if normalization == 'batchnorm':
@@ -287,9 +300,11 @@ class ResNetCIFAR10(nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
             elif isinstance(m, nn.Linear):
-                nn.init.normal_(m.weight, std=1e-3)
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0)
+                pass
+                # nn.init.normal_(m.weight, std=1e-3)
+                # if m.bias is not None:
+                #     nn.init.constant_(m.bias, 0)
+
     
     def forward(self, x):
         out = self.conv1(x)

@@ -54,7 +54,7 @@ def group_weight(module):
             if m.bias is not None:
                 group_no_decay.append(m.bias)
         elif isinstance(m, nn.modules.batchnorm._BatchNorm):
-            if m.bias is not None:
+            if m.weight is not None:
                 group_no_decay.append(m.weight)
             if m.bias is not None:
                 group_no_decay.append(m.bias)
